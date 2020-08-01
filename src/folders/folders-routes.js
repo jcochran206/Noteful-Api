@@ -1,7 +1,7 @@
 const express = require('express')
 const { isWebUri } = require('valid-url')
 const xss = require('xss')
-//const logger = require('')
+const logger = require('../logger')
 const FolderService = require('./folder-service')
 const FolderRouter = express.Router()
 const bodyParser = express.json()
@@ -21,49 +21,30 @@ FolderRouter
       })
       .catch(next)
   })
-//   .post(bodyParser, (req, res, next) => {
-//     for (const field of ['title', 'url', 'rating']) {
-//       if (!req.body[field]) {
-//         logger.error(`${field} is required`)
-//         return res.status(400).send({
-//           error: { message: `'${field}' is required` }
-//         })
-//       }
-//     }
 
-//     const { title, url, description, rating } = req.body
+  .post(bodyParser, (req, res, next) => {
+    const { name } = req.body;
+      if (!name) {
+        logger.error(`${name} is required`)
+        return res.status(400).send({
+          error: { message: `'${name}' is required` }
+        })
+      }
 
-//     const ratingNum = Number(rating)
 
-//     if (!Number.isInteger(ratingNum) || ratingNum < 0 || ratingNum > 5) {
-//       logger.error(`Invalid rating '${rating}' supplied`)
-//       return res.status(400).send({
-//         error: { message: `'rating' must be a number between 0 and 5` }
-//       })
-//     }
-
-//     if (!isWebUri(url)) {
-//       logger.error(`Invalid url '${url}' supplied`)
-//       return res.status(400).send({
-//         error: { message: `'url' must be a valid URL` }
-//       })
-//     }
-
-//     const newBookmark = { title, url, description, rating }
-
-//     BookmarksService.insertBookmark(
-//       req.app.get('db'),
-//       newBookmark
-//     )
-//       .then(bookmark => {
-//         logger.info(`Bookmark with id ${bookmark.id} created.`)
-//         res
-//           .status(201)
-//           .location(`/bookmarks/${bookmark.id}`)
-//           .json(serializeBookmark(bookmark))
-//       })
-//       .catch(next)
-//   })
+    FolderService.insertFolder(
+      req.app.get('db'),
+      { name }
+    )
+      .then(folder => {
+        logger.info(`Bookmark with id ${folder.id} created.`)
+        res
+          .status(201)
+          .location(`/folders/${folder.id}`)
+          .json(serializeFolder(folder))
+      })
+      .catch(next)
+  })
 
 // FolderRouter
 //   .route('/bookmarks/:bookmark_id')
