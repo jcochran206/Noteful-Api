@@ -3,6 +3,7 @@ const { isWebUri } = require('valid-url')
 const xss = require('xss')
 const logger = require('../logger')
 const FolderService = require('./folder-service')
+const { response } = require('../app')
 const FolderRouter = express.Router()
 const bodyParser = express.json()
 
@@ -46,26 +47,41 @@ FolderRouter
       .catch(next)
   })
 
-// FolderRouter
-//   .route('/bookmarks/:bookmark_id')
-//   .all((req, res, next) => {
-//     const { bookmark_id } = req.params
-//     BookmarksService.getById(req.app.get('db'), bookmark_id)
-//       .then(bookmark => {
-//         if (!bookmark) {
-//           logger.error(`Bookmark with id ${bookmark_id} not found.`)
-//           return res.status(404).json({
-//             error: { message: `Bookmark Not Found` }
-//           })
-//         }
-//         res.bookmark = bookmark
-//         next()
-//       })
-//       .catch(next)
-//   })
-//   .get((req, res) => {
-//     res.json(serializeBookmark(res.bookmark))
-//   })
+FolderRouter
+  .route('/:id')
+  .all((req, res, next) => {
+    const { id } = req.params
+    FolderService.getById(req.app.get('db'), id)
+      .then(folder => {
+        if (!folder) {
+          logger.error(`folder with id ${id} not found.`)
+          return res.status(404).json({
+            error: { message: `Folder Not Found` }
+          })
+        }
+        res.folder = folder
+        next()
+      })
+      .catch(next)
+  })
+
+.get((req, res, next) => {
+    const knexInstance = req.app.get("db");
+    FolderService.getById(knexInstance, req.params.id)
+      .then((folder) => {
+        if (!folder) {
+          logger.error(`Bookmark with id:${req.params.id} not found.`);
+          return res.status(404).json({
+            error: { message: `folder doesn't exist` },
+          });
+        }
+        res.json({
+          ...folder,
+          name: xss(folder.name),
+        });
+      })
+      .catch(next);
+  })
 //   .delete((req, res, next) => {
 //     const { bookmark_id } = req.params
 //     BookmarksService.deleteBookmark(
