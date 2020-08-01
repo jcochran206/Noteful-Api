@@ -38,7 +38,7 @@ FolderRouter
       { name }
     )
       .then(folder => {
-        logger.info(`Bookmark with id ${folder.id} created.`)
+        logger.info(`Folder with id ${folder.id} created.`)
         res
           .status(201)
           .location(`/folders/${folder.id}`)
@@ -65,34 +65,56 @@ FolderRouter
       .catch(next)
   })
 
-.get((req, res, next) => {
-    const knexInstance = req.app.get("db");
-    FolderService.getById(knexInstance, req.params.id)
-      .then((folder) => {
-        if (!folder) {
-          logger.error(`Bookmark with id:${req.params.id} not found.`);
-          return res.status(404).json({
-            error: { message: `folder doesn't exist` },
-          });
-        }
-        res.json({
-          ...folder,
-          name: xss(folder.name),
-        });
-      })
-      .catch(next);
-  })
-//   .delete((req, res, next) => {
-//     const { bookmark_id } = req.params
-//     BookmarksService.deleteBookmark(
-//       req.app.get('db'),
-//       bookmark_id
-//     )
-//       .then(numRowsAffected => {
-//         logger.info(`Bookmark with id ${bookmark_id} deleted.`)
-//         res.status(204).end()
+// .get((req, res, next) => {
+//     const knexInstance = req.app.get("db");
+//     FolderService.getById(knexInstance, req.params.id)
+//       .then((folder) => {
+//         if (!folder) {
+//           logger.error(`Bookmark with id:${req.params.id} not found.`);
+//           return res.status(404).json({
+//             error: { message: `folder doesn't exist` },
+//           });
+//         }
+//         res.json({
+//           ...folder,
+//           name: xss(folder.name),
+//         });
 //       })
-//       .catch(next)
+//       .catch(next);
 //   })
+
+// .delete((req, res, next) => {
+//     const { id } = req.params.id;
+//     FolderService.deleteFolder(req.app.get('db'), id)
+//     .then(rows => {
+//         logger.info(`folder with id: ${id} deleted`)
+//         res.status(200).send(`folder with id: ${id} deleted`)
+//     })
+//     .catch(next)
+//     // const folderIndex = folder.findIndex(
+//     //   (folder) => folder.id === id
+//     // );
+//     // if (folderIndex === -1) {
+//     //   logger.error(`Folder with id:"${id}" not found.`);
+//     //   res.status(404).send("Folder not found.");
+//     // }
+//     // folder.splice(folderIndex, 1);
+//     // logger.info(`Folder with id:"${id}" was deleted.`);
+//     // res.status(200).send(`Folder with id:"${id}" was deleted.`);
+//   })
+
+.get((req, res, next) => {
+    res.json(serializeFolder(res.folder))
+  })
+  .delete((req, res, next) => {
+    FolderService.deleteFolder(
+      req.app.get('db'),
+      req.params.id
+    )
+      .then(numRowsAffected => {
+        res.status(204).end()
+      })
+      .catch(next)
+  })
 
 module.exports = FolderRouter
