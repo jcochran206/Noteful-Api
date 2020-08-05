@@ -5,6 +5,8 @@ const cors = require('cors')
 const helmet = require('helmet')
 const { NODE_ENV } = require('./config')
 const FolderRouter = require('./folders/folders-routes')
+const NoteRouter = require('./notes/notes-router')
+
 const app = express()
 
 const morganOption = (NODE_ENV === 'production')
@@ -19,6 +21,7 @@ app.get('/', (req, res) => {
 })
 
 app.use('/folders', FolderRouter)
+app.use('/notes', NoteRouter)
 
 
 app.use(cors())
