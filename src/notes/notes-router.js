@@ -11,7 +11,7 @@ const serializeFolder = note => ({
   id: note.id,
   name: xss(note.name),
   modified: note.modified,
-  folderId: note.folderId,
+  folderid: note.folderid,
   content: xss(note.content)
 })
 
@@ -27,25 +27,31 @@ NoteRouter
   })
 
   .post(bodyParser, (req, res, next) => {
-    const { name } = req.body;
+    const { name, folderid, content } = req.body;
       if (!name) {
         logger.error(`${name} is required`)
         return res.status(400).send({
           error: { message: `'${name}' is required` }
         })
       }
+      if (!content) {
+        logger.error(`${content} is required`)
+        return res.status(400).send({
+          error: { message: `'${content}' is required` }
+        })
+      }
 
 
-    NoteService.insertFolder(
+    NoteService.insertNote(
       req.app.get('db'),
-      { name }
+      { name, folderid, content }
     )
-      .then(folder => {
-        logger.info(`Folder with id ${folder.id} created.`)
+      .then(note => {
+        logger.info(`Folder with id ${note.id} created.`)
         res
           .status(201)
-          .location(`/notes/${folder.id}`)
-          .json(serializeFolder(folder))
+          .location(`/folders/${folderid}`)
+          .json(serializeFolder(note))
       })
       .catch(next)
   })
