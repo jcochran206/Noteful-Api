@@ -7,7 +7,7 @@ const { response } = require('../app')
 const NoteRouter = express.Router()
 const bodyParser = express.json()
 
-const serializeFolder = note => ({
+const serializeNote = note => ({
   id: note.id,
   name: xss(note.name),
   modified: note.modified,
@@ -51,7 +51,7 @@ NoteRouter
         res
           .status(201)
           .location(`/folders/${folderid}`)
-          .json(serializeFolder(note))
+          .json(serializeNote(note))
       })
       .catch(next)
   })
@@ -59,16 +59,16 @@ NoteRouter
 NoteRouter
   .route('/:id')
   .all((req, res, next) => {
-    const { id } = req.params
-    NoteService.getById(req.app.get('db'), id)
-      .then(folder => {
-        if (!folder) {
-          logger.error(`folder with id ${id} not found.`)
+    const { id, folderid } = req.params
+    NoteService.getNoteById(req.app.get('db'), id)
+      .then(note => {
+        if (!note) {
+          logger.error(`note with id ${id} not found.`)
           return res.status(404).json({
             error: { message: `Folder Not Found` }
           })
         }
-        res.folder = folder
+        res.note = note
         next()
       })
       .catch(next)
@@ -76,14 +76,16 @@ NoteRouter
 
 
 .get((req, res, next) => {
-    res.json(serializeFolder(res.folder))
+    res.json(serializeNote(res.note))
   })
   .delete((req, res, next) => {
-    NoteService.deleteFolder(
+    const {id, folderid} = req.params;
+    NoteService.deleteNote(
       req.app.get('db'),
       req.params.id
     )
       .then(numRowsAffected => {
+        logger.info(`note with id ${id} deleted`)
         res.status(204).end()
       })
       .catch(next)
